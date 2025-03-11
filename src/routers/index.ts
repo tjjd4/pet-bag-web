@@ -24,23 +24,23 @@ const routes = [
     routes,
   });
   
-  router.beforeEach(async (to, from, next) => {
-    if (to.meta.requiresAuth) {
-    //   try {
-    //     const result = await isLogin();
+  // router.beforeEach(async (to, from, next) => {
+  //   if (to.meta.requiresAuth) {
+  //     try {
+  //       const result = await isLogin();
   
-    //     if (result) {
-    //       next();
-    //     } else {
-    //       next({ path: '/' });
-    //     }
-    //   } catch (error) {
-    //     console.error('Authentication failed:', error);
-    //     next({ path: '/' });
-    //   }
-    } else {
-      next(); // 對於非保護路由，直接放行
-    }
-  });
+  //       if (result) {
+  //         next();
+  //       } else {
+  //         next({ path: '/' });
+  //       }
+  //     } catch (error) {
+  //       console.error('Authentication failed:', error);
+  //       next({ path: '/' });
+  //     }
+  //   } else {
+  //     next(); // 對於非保護路由，直接放行
+  //   }
+  // });
   
   export default router;

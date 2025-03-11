@@ -1,9 +1,11 @@
-export interface IOptions {
+export interface IOption {
   text: string,
   value: string,
 }
 
-export interface IQuestions {
-  label: string,
-  options: IOptions[],
+export interface IQuestion<T> {
+  label: string;
+  model: keyof T;
+  options: IOption[];
+  required?: boolean;
 }
