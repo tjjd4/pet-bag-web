@@ -1,11 +1,38 @@
 <script setup lang="ts">
+import { reactive } from 'vue';
+import useVuelidate from '@vuelidate/core';
+import { required } from '@vuelidate/validators';
 import RadioGroup from "./RadioGroup.vue";
 import SelectGroup from "./SelectGroup.vue";
-import { type IQuestions } from "../types/types.ts"
+import { type IQuestion } from "../types/types.ts";
 
-const questions: IQuestions[] = [
-  { label: "寵物是什麼品種？", options: 
-    [
+interface FormDataQ2 {
+  petBreed: string | null;
+  petMeals: string | null;
+  petFoodType: string | null;
+  petAllergies: string | null;
+}
+
+const form = reactive<FormDataQ2>({
+  petBreed: null,
+  petMeals: null,
+  petFoodType: null,
+  petAllergies: null
+});
+
+const rules: Record<keyof FormDataQ2, any> = {
+  petBreed: { required },
+  petMeals: { required },
+  petFoodType: { required },
+  petAllergies: { required }
+};
+
+const questions: IQuestion<FormDataQ2>[] = [
+  {
+    label: "寵物是什麼品種？",
+    model: 'petBreed',
+    type: 'select',
+    options: [
       { text: "柴犬", value: "shiba_inu" },
       { text: "哈士奇", value: "siberian_husky" },
       { text: "拉布拉多", value: "labrador_retriever" },
@@ -28,29 +55,62 @@ const questions: IQuestions[] = [
       { text: "俄羅斯藍貓", value: "russian_blue" }
     ]
   },
-  { label: "寵物一天吃幾餐？", options: [
-    { text: "1餐", value: "one_meal" },
-    { text: "早晚2餐", value: "two_meals" },
-    { text: "一天3餐", value: "three_meals" },
-    { text: "吃到飽模式", value: "free_feeding" }
-  ]},
-  { label: "平時是吃什麼形式的正餐？", options: [
-    { text: "乾糧飼料", value: "dry_food" },
-    { text: "罐頭", value: "canned_food" },
-    { text: "鮮食(自己煮菜煮肉)", value: "home_cooked" },
-    { text: "生食", value: "raw_food" }
-  ]},
-  { label: "寵物對什麼食物過敏，不喜歡吃？", options: [
-    { text: "容易過敏1", value: "allergen_1" },
-    { text: "容易過敏2", value: "allergen_2" }
-  ]},
+  {
+    label: "寵物一天吃幾餐？",
+    model: 'petMeals',
+    type: 'radio',
+    options: [
+      { text: "1餐", value: "one_meal" },
+      { text: "早晚2餐", value: "two_meals" },
+      { text: "一天3餐", value: "three_meals" },
+      { text: "吃到飽模式", value: "free_feeding" }
+    ]
+  },
+  {
+    label: "平時是吃什麼形式的正餐？",
+    model: 'petFoodType',
+    type: 'radio',
+    options: [
+      { text: "乾糧飼料", value: "dry_food" },
+      { text: "罐頭", value: "canned_food" },
+      { text: "鮮食(自己煮菜煮肉)", value: "home_cooked" },
+      { text: "生食", value: "raw_food" }
+    ]
+  },
+  {
+    label: "寵物對什麼食物過敏，不喜歡吃？",
+    model: 'petAllergies',
+    type: 'radio',
+    options: [
+      { text: "容易過敏1", value: "allergen_1" },
+      { text: "容易過敏2", value: "allergen_2" }
+    ]
+  }
 ];
 
+const v$ = useVuelidate(rules, form);
+
+const submitForm = () => {
+  v$.value.$validate();
+  if (!v$.value.$invalid) {
+    alert('表單提交成功!');
+    console.log(form);
+  } else {
+    alert('請完成所有必填項目。');
+  }
+};
 </script>
 
 <template>
-    <SelectGroup :label="questions[0].label" :options="questions[0].options" class="my-5" />
-    <RadioGroup :label="questions[1].label" :options="questions[1].options" class="my-5" />
-    <RadioGroup :label="questions[2].label" :options="questions[2].options" class="my-5" />
-    <RadioGroup :label="questions[3].label" :options="questions[3].options" class="my-5" />
+  <div v-for="question in questions" :key="question.label">
+    <component
+      :is="question.type === 'select' ? SelectGroup : RadioGroup"
+      :label="question.label" 
+      :options="question.options" 
+      v-model="form[question.model as keyof FormDataQ2]" 
+      class="my-5"
+    />
+    <p v-if="v$[question.model]?.$error" class="text-red-500">此欄位為必填。</p>
+  </div>
+  <button @click="submitForm" class="mt-5 bg-teal-600 text-white py-2 px-4 rounded">提交</button>
 </template>
