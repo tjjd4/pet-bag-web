@@ -2,6 +2,7 @@
 import { ref } from "vue"
 import QuizStep0 from "./QuizStep0.vue"
 import QuizStep1 from "./QuizStep1.vue"
+import { type FormDataQ0, type FormDataQ1 } from '../types/formData';
 
 const currentStep = ref(0);
 const totalSteps = 3;
@@ -17,24 +18,35 @@ const prevStep = () => {
     currentStep.value--;
   }
 };
+
+const formDataStep0 = ref<FormDataQ0 | null>(null);
+
+const handleFormDataQ0Update = (data: FormDataQ0) => {
+  formDataStep0.value = data;
+  console.log('從子元件接收到的資料：', data);
+};
+const formDataStep1 = ref<FormDataQ1 | null>(null);
+
+const handleFormDataQ1Update = (data: FormDataQ1) => {
+  formDataStep1.value = data;
+  console.log('從子元件接收到的資料：', data);
+};
+
 </script>
 
 <template>
   <div>
     <div v-if="currentStep === 0">
       <h1 class="text-xl font-semibold text-center mb-4">基本資訊</h1>
-      <QuizStep0 />
+      <QuizStep0 :nextStep="nextStep" @updateForm="handleFormDataQ0Update"/>
     </div>
     <div v-if="currentStep === 1">
       <h1 class="text-xl font-semibold text-center mb-4">飲食資訊</h1>
-      <QuizStep1 />
+      <QuizStep1 :nextStep="nextStep" :prevStep="prevStep" @updateForm="handleFormDataQ1Update"/>
     </div>
     <div v-if="currentStep === 2">
-      
+      <div>Finish!!!</div>
+      <div>{{ formDataStep0, formDataStep1 }}</div>
     </div>
-  </div>
-  <div class="flex flex-row-reverse justify-between mt-6">
-    <button @click="nextStep" class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg">下一題</button>
-    <button v-if="currentStep > 0" @click="prevStep" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">上一步</button>
   </div>
 </template>

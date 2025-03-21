@@ -1,9 +1,22 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { type IOptions } from "../types/types.ts"
+import { ref, watch } from "vue";
+import { type IOption } from "../types/types.ts"
 
-defineProps<{ label: string; options: IOptions[] }>();
+defineProps<{
+  label: string;
+  options: IOption[];
+  value: string | null;
+}>();
+
+const emits = defineEmits<{
+  (e: 'update:value', value: string | null): void;
+}>();
+
 const selected = ref<string | null>(null);
+
+watch(() => selected.value, (value) => {
+  emits('update:value', value);
+});
 </script>
 
 <template>

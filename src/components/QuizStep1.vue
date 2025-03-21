@@ -2,32 +2,36 @@
 import { reactive } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
+
 import RadioGroup from "./RadioGroup.vue";
 import SelectGroup from "./SelectGroup.vue";
 import { type IQuestion } from "../types/types.ts";
+import { type FormDataQ1 } from '../types/formData';
 
-interface FormDataQ2 {
-  petBreed: string | null;
-  petMeals: string | null;
-  petFoodType: string | null;
-  petAllergies: string | null;
-}
+const props = defineProps<{
+  nextStep: () => void;
+  prevStep: () => void;
+}>();
 
-const form = reactive<FormDataQ2>({
+const emits = defineEmits<{
+  (e: 'updateForm', formData: FormDataQ1): void;
+}>();
+
+const form = reactive<FormDataQ1>({
   petBreed: null,
   petMeals: null,
   petFoodType: null,
   petAllergies: null
 });
 
-const rules: Record<keyof FormDataQ2, any> = {
+const rules: Record<keyof FormDataQ1, any> = {
   petBreed: { required },
   petMeals: { required },
   petFoodType: { required },
   petAllergies: { required }
 };
 
-const questions: IQuestion<FormDataQ2>[] = [
+const questions: IQuestion<FormDataQ1>[] = [
   {
     label: "寵物是什麼品種？",
     model: 'petBreed',
@@ -90,12 +94,14 @@ const questions: IQuestion<FormDataQ2>[] = [
 
 const v$ = useVuelidate(rules, form);
 
-const submitForm = () => {
+const handleSubmit = () => {
   v$.value.$validate();
   if (!v$.value.$invalid) {
-    alert('表單提交成功!');
-    console.log(form);
+    console.log(`[QuizStep1] ${form}`);
+    emits('updateForm', form);
+    props.nextStep();
   } else {
+    console.log(`[QuizStep1] Not all questiones are anwsered.`);
     alert('請完成所有必填項目。');
   }
 };
@@ -107,10 +113,13 @@ const submitForm = () => {
       :is="question.type === 'select' ? SelectGroup : RadioGroup"
       :label="question.label" 
       :options="question.options" 
-      v-model="form[question.model as keyof FormDataQ2]" 
+      v-model:value="form[question.model as keyof FormDataQ1]"
       class="my-5"
     />
     <p v-if="v$[question.model]?.$error" class="text-red-500">此欄位為必填。</p>
   </div>
-  <button @click="submitForm" class="mt-5 bg-teal-600 text-white py-2 px-4 rounded">提交</button>
+  <div class="flex flex-row-reverse justify-between mt-6">
+    <button @click="handleSubmit" class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg">下一題</button>
+    <button @click="prevStep" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">上一步</button>
+  </div>
 </template>
