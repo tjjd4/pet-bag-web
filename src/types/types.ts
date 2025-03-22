@@ -1,8 +1,8 @@
-export type QuestionType = "radio" | "select" | "default"
+export type QuestionType = "radio" | "select" | "default";
 
 export interface IOption {
-  text: string,
-  value: string,
+  text: string;
+  value: string;
 }
 
 export interface IQuestion<T> {
