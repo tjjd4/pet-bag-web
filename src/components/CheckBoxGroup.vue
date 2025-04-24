@@ -5,14 +5,14 @@ import { type IOption } from "../types/types.ts";
 defineProps<{
     label: string;
     options: IOption[];
-    value: string | null;
+    value: string[];
 }>();
 
 const emits = defineEmits<{
-    (e: "update:value", value: string | null): void;
+    (e: "update:value", value: string[]): void;
 }>();
 
-const selected = ref<string | null>(null);
+const selected = ref<string[]>([]);
 
 watch(
     () => selected.value,
@@ -21,6 +21,7 @@ watch(
     },
 );
 </script>
+
 <template>
     <div>
         <p class="mb-2">{{ label }}</p>
@@ -28,24 +29,23 @@ watch(
             <label
                 v-for="option in options"
                 :key="option.value"
-                class="cursor-pointer"
+                class="flex items-center gap-2 cursor-pointer"
             >
                 <input
-                    type="radio"
+                    type="checkbox"
                     :value="option.value"
                     v-model="selected"
                     class="hidden"
                 />
-                <div
+                <span
                     :class="[
-                        'px-4 py-2 rounded-lg border transition-colors duration-200',
-                        selected === option.value
-                            ? 'bg-teal-700 text-white border-teal-700'
-                            : 'bg-transparent text-gray-700 border-gray-300 hover:bg-teal-200 hover:border-teal-400'
+                        'w-4 h-4 flex items-center justify-center border-2 rounded',
+                        selected.includes(option.value)
+                            ? 'bg-teal-600'
+                            : 'bg-gray-200',
                     ]"
-                >
-                    {{ option.text }}
-                </div>
+                ></span>
+                {{ option.text }}
             </label>
         </div>
     </div>
