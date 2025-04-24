@@ -18,47 +18,24 @@ const emits = defineEmits<{
 }>();
 
 const form = reactive<FormDataQ1>({
-    petBreed: null,
     petMeals: null,
     petFoodType: null,
     petAllergies: null,
+    waterIntake: null,
+    activityLevel: null,
+    frequentOuting: null,
 });
 
 const rules: Record<keyof FormDataQ1, any> = {
-    petBreed: { required },
     petMeals: { required },
     petFoodType: { required },
     petAllergies: { required },
+    waterIntake: { required },
+    activityLevel: { required },
+    frequentOuting: { required },
 };
 
 const questions: IQuestion<FormDataQ1>[] = [
-    {
-        label: "寵物是什麼品種？",
-        model: "petBreed",
-        type: "select",
-        options: [
-            { text: "柴犬", value: "shiba_inu" },
-            { text: "哈士奇", value: "siberian_husky" },
-            { text: "拉布拉多", value: "labrador_retriever" },
-            { text: "黃金獵犬", value: "golden_retriever" },
-            { text: "柯基", value: "pembroke_welsh_corgi" },
-            { text: "鬆獅犬", value: "chow_chow" },
-            { text: "貴賓犬", value: "poodle" },
-            { text: "法鬥", value: "french_bulldog" },
-            { text: "秋田犬", value: "akita" },
-            { text: "邊境牧羊犬", value: "border_collie" },
-            { text: "英短", value: "british_shorthair" },
-            { text: "美短", value: "american_shorthair" },
-            { text: "布偶貓", value: "ragdoll" },
-            { text: "緬因貓", value: "maine_coon" },
-            { text: "加菲貓", value: "exotic_shorthair" },
-            { text: "挪威森林貓", value: "norwegian_forest_cat" },
-            { text: "孟加拉貓", value: "bengal" },
-            { text: "蘇格蘭摺耳貓", value: "scottish_fold" },
-            { text: "暹羅貓", value: "siamese" },
-            { text: "俄羅斯藍貓", value: "russian_blue" },
-        ],
-    },
     {
         label: "寵物一天吃幾餐？",
         model: "petMeals",
@@ -88,6 +65,35 @@ const questions: IQuestion<FormDataQ1>[] = [
         options: [
             { text: "容易過敏1", value: "allergen_1" },
             { text: "容易過敏2", value: "allergen_2" },
+        ],
+    },
+    {
+        label: "飲水量：",
+        model: "waterIntake",
+        type: "radio",
+        options: [
+            { text: "少", value: "low" },
+            { text: "適中", value: "medium" },
+            { text: "多", value: "high" },
+        ],
+    },
+    {
+        label: "活動量：",
+        model: "activityLevel",
+        type: "radio",
+        options: [
+            { text: "低", value: "low" },
+            { text: "中", value: "medium" },
+            { text: "高", value: "high" },
+        ],
+    },
+    {
+        label: "是否經常外出：",
+        model: "frequentOuting",
+        type: "radio",
+        options: [
+            { text: "是", value: "yes" },
+            { text: "否", value: "no" },
         ],
     },
 ];

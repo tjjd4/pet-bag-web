@@ -4,6 +4,7 @@ import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 
 import RadioGroup from "./RadioGroup.vue";
+import SelectGroup from "./SelectGroup.vue";
 import { type IQuestion } from "../types/types";
 import { type FormDataQ0 } from "../types/formData";
 
@@ -19,12 +20,18 @@ const form = reactive<FormDataQ0>({
     petType: null,
     petAge: null,
     petGender: null,
+    petBreed: null,
+    petWeight: null,
+    petBodyType: null,
 });
 
 const rules: Record<keyof FormDataQ0, any> = {
     petType: { required },
     petAge: { required },
     petGender: { required },
+    petBreed: { required },
+    petWeight: { required },
+    petBodyType: { required },
 };
 
 const questions: IQuestion<FormDataQ0>[] = [
@@ -57,6 +64,55 @@ const questions: IQuestion<FormDataQ0>[] = [
             { text: "女", value: "female" },
         ],
     },
+    {
+        label: "寵物是什麼品種？",
+        model: "petBreed",
+        type: "select",
+        options: [
+            { text: "柴犬", value: "shiba_inu" },
+            { text: "哈士奇", value: "siberian_husky" },
+            { text: "拉布拉多", value: "labrador_retriever" },
+            { text: "黃金獵犬", value: "golden_retriever" },
+            { text: "柯基", value: "pembroke_welsh_corgi" },
+            { text: "鬆獅犬", value: "chow_chow" },
+            { text: "貴賓犬", value: "poodle" },
+            { text: "法鬥", value: "french_bulldog" },
+            { text: "秋田犬", value: "akita" },
+            { text: "邊境牧羊犬", value: "border_collie" },
+            { text: "英短", value: "british_shorthair" },
+            { text: "美短", value: "american_shorthair" },
+            { text: "布偶貓", value: "ragdoll" },
+            { text: "緬因貓", value: "maine_coon" },
+            { text: "加菲貓", value: "exotic_shorthair" },
+            { text: "挪威森林貓", value: "norwegian_forest_cat" },
+            { text: "孟加拉貓", value: "bengal" },
+            { text: "蘇格蘭摺耳貓", value: "scottish_fold" },
+            { text: "暹羅貓", value: "siamese" },
+            { text: "俄羅斯藍貓", value: "russian_blue" },
+        ],
+    },
+    {
+        label: "寵物的體重是多少？",
+        model: "petWeight",
+        type: "radio",
+        options: [
+            { text: "1-5 公斤", value: "weight_1_5" },
+            { text: "5-10 公斤", value: "weight_5_10" },
+            { text: "10-15 公斤", value: "weight_10_15" },
+            { text: "15-20 公斤", value: "weight_15_20" },
+            { text: "20-25 公斤", value: "weight_20_25" },
+        ],
+    },
+    {
+        label: "寵物的體型是？",
+        model: "petBodyType",
+        type: "radio",
+        options: [
+            { text: "過瘦", value: "underweight" },
+            { text: "正常", value: "normal" },
+            { text: "過胖", value: "overweight" },
+        ],
+    },
 ];
 
 const v$ = useVuelidate(rules, form);
@@ -78,7 +134,8 @@ const handleSubmit = () => {
 
 <template>
     <div v-for="question in questions" :key="question.label">
-        <RadioGroup
+        <component
+            :is="question.type === 'select' ? SelectGroup : RadioGroup"
             :label="question.label"
             :options="question.options"
             v-model:value="form[question.model as keyof FormDataQ0]"

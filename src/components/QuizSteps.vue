@@ -2,10 +2,12 @@
 import { ref } from "vue";
 import QuizStep0 from "./QuizStep0.vue";
 import QuizStep1 from "./QuizStep1.vue";
-import { type FormDataQ0, type FormDataQ1 } from "../types/formData";
+import QuizStep2 from "./QuizStep2.vue";
+import QuizStep3 from "./QuizStep3.vue";
+import { type FormDataQ0, type FormDataQ1, type FormDataQ2, type FormDataQ3 } from "../types/formData";
 
 const currentStep = ref(0);
-const totalSteps = 3;
+const totalSteps = 5;
 
 const nextStep = () => {
     if (currentStep.value < totalSteps - 1) {
@@ -29,6 +31,16 @@ const formDataStep1 = ref<FormDataQ1 | null>(null);
 const handleFormDataQ1Update = (data: FormDataQ1) => {
     formDataStep1.value = data;
 };
+const formDataStep2 = ref<FormDataQ2 | null>(null);
+
+const handleFormDataQ2Update = (data: FormDataQ2) => {
+    formDataStep2.value = data;
+};
+const formDataStep3 = ref<FormDataQ3 | null>(null);
+
+const handleFormDataQ3Update = (data: FormDataQ3) => {
+    formDataStep3.value = data;
+};
 </script>
 
 <template>
@@ -49,9 +61,27 @@ const handleFormDataQ1Update = (data: FormDataQ1) => {
             />
         </div>
         <div v-if="currentStep === 2">
+            <h1 class="text-xl font-semibold text-center mb-4">飲食資訊</h1>
+            <QuizStep2
+                :nextStep="nextStep"
+                :prevStep="prevStep"
+                @updateForm="handleFormDataQ2Update"
+            />
+        </div>
+        <div v-if="currentStep === 3">
+            <h1 class="text-xl font-semibold text-center mb-4">營養需求</h1>
+            <QuizStep3
+                :nextStep="nextStep"
+                :prevStep="prevStep"
+                @updateForm="handleFormDataQ3Update"
+            />
+        </div>
+        <div v-if="currentStep === 4">
             <div>Finish!!!</div>
             <div>{{ formDataStep0 }}</div>
             <div>{{ formDataStep1 }}</div>
+            <div>{{ formDataStep2 }}</div>
+            <div>{{ formDataStep3 }}</div>
         </div>
     </div>
 </template>

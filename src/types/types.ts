@@ -1,4 +1,4 @@
-export type QuestionType = "radio" | "select" | "default";
+export type QuestionType = "radio" | "select" | "checkbox" | "default";
 
 export interface IOption {
   text: string;
@@ -10,5 +10,5 @@ export interface IQuestion<T> {
   model: keyof T;
   options: IOption[];
   type: QuestionType;
-  required?: boolean;
+  otherField?: string;
 }
