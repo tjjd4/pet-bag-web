@@ -17,6 +17,11 @@ const routes = [
       name: 'NotFound',
       component: () => import('../views/NotFound.vue'),
     },
+    {
+      path: '/intro',
+      name: 'Intro',
+      component: () => import('../views/Intro.vue'),
+    },
   ];
   
   const router = createRouter({

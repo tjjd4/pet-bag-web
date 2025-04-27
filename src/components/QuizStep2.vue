@@ -3,8 +3,7 @@ import { reactive } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 
-import RadioGroup from "./RadioGroup.vue";
-import CheckboxGroup from "./CheckboxGroup.vue";
+import { groupComponentMap } from "./groupComponentMap";
 import { type IQuestion } from "../types/types.ts";
 import { type FormDataQ2 } from "../types/formData";
 
@@ -18,74 +17,84 @@ const emits = defineEmits<{
 }>();
 
 const form = reactive<FormDataQ2>({
-    stoolCondition: null,
-    stoolFrequency: null,
-    stressBehaviors: [],
-    sensitivityChanges: [],
-    stressSources: [],
+    petMeals: null,
+    petFoodType: null,
+    petAllergies: null,
+    waterIntake: null,
+    activityLevel: null,
+    frequentOuting: null,
 });
 
-const rules: Record<string, any> = {
-    stoolCondition: { required },
-    stoolFrequency: { required },
+const rules: Record<keyof FormDataQ2, any> = {
+    petMeals: { required },
+    petFoodType: { required },
+    petAllergies: { required },
+    waterIntake: { required },
+    activityLevel: { required },
+    frequentOuting: { required },
 };
 
 const questions: IQuestion<FormDataQ2>[] = [
     {
-        label: "便便狀態：",
-        model: "stoolCondition",
+        label: "寵物一天吃幾餐？",
+        model: "petMeals",
         type: "radio",
         options: [
-            { text: "正常", value: "normal" },
-            { text: "偏軟", value: "soft" },
-            { text: "偏硬", value: "hard" },
-            { text: "腹瀉", value: "diarrhea" },
-            { text: "便秘", value: "constipation" },
+            { text: "1餐", value: "one_meal" },
+            { text: "早晚2餐", value: "two_meals" },
+            { text: "一天3餐", value: "three_meals" },
+            { text: "吃到飽模式", value: "free_feeding" },
         ],
     },
     {
-        label: "排便頻率：",
-        model: "stoolFrequency",
+        label: "平時是吃什麼形式的正餐？",
+        model: "petFoodType",
         type: "radio",
         options: [
-            { text: "每天 1 次", value: "once_per_day" },
-            { text: "1 天多次", value: "multiple_per_day" },
-            { text: "2 天一次或更久", value: "every_two_days" },
+            { text: "乾糧飼料", value: "dry_food" },
+            { text: "罐頭", value: "canned_food" },
+            { text: "鮮食(自己煮菜煮肉)", value: "home_cooked" },
+            { text: "生食", value: "raw_food" },
         ],
     },
     {
-        label: "是否有焦慮行為（可複選）：",
-        model: "stressBehaviors",
-        type: "checkbox",
+        label: "寵物對什麼食物過敏，不喜歡吃？",
+        model: "petAllergies",
+        type: "radio",
         options: [
-            { text: "舔腳", value: "lick_paws" },
-            { text: "咬尾巴", value: "bite_tail" },
-            { text: "過度舔毛", value: "over_grooming" },
-            { text: "其他（請填寫）", value: "other" },
+            { text: "無", value: "none" },
+            { text: "容易過敏1", value: "allergen_1" },
+            { text: "容易過敏2", value: "allergen_2" },
         ],
-        otherField: "otherStressBehavior",
     },
     {
-        label: "是否對環境變化敏感（可複選）：",
-        model: "sensitivityChanges",
-        type: "checkbox",
+        label: "飲水量：",
+        model: "waterIntake",
+        type: "radio",
         options: [
-            { text: "易受驚", value: "easily_frightened" },
-            { text: "怕聲音", value: "fear_sounds" },
-            { text: "其他（請填寫）", value: "other" },
+            { text: "少 (幾乎不主動喝水)", value: "low" },
+            { text: "適中", value: "medium" },
+            { text: "多 (特別愛喝水)", value: "high" },
         ],
-        otherField: "otherSensitivityChange",
     },
     {
-        label: "壓力來源（可複選）：",
-        model: "stressSources",
-        type: "checkbox",
+        label: "活動量：",
+        model: "activityLevel",
+        type: "radio",
         options: [
-            { text: "環境變動（搬家、新寵物）", value: "environment_change" },
-            { text: "煩躁易怒（情緒焦慮、攻擊行為）", value: "irritability" },
-            { text: "其他（請填寫）", value: "other" },
+            { text: "低 (大部分時間都躺著)", value: "low" },
+            { text: "中", value: "medium" },
+            { text: "高 (每天運動超過1小時)", value: "high" },
         ],
-        otherField: "otherStressSource",
+    },
+    {
+        label: "是否經常外出：",
+        model: "frequentOuting",
+        type: "radio",
+        options: [
+            { text: "是 (散步/旅行/其他)", value: "yes" },
+            { text: "否 (主要在家)", value: "no" },
+        ],
     },
 ];
 
@@ -94,10 +103,11 @@ const v$ = useVuelidate(rules, form);
 const handleSubmit = () => {
     v$.value.$validate();
     if (!v$.value.$invalid) {
-        console.log(`[QuizStep2]`, form);
+        console.log(`[QuizStep1] ${form}`);
         emits("updateForm", form);
         props.nextStep();
     } else {
+        console.log(`[QuizStep1] Not all questiones are anwsered.`);
         alert("請完成所有必填項目。");
     }
 };
@@ -106,23 +116,12 @@ const handleSubmit = () => {
 <template>
     <div v-for="question in questions" :key="question.label">
         <component
-            :is="question.type === 'radio' ? RadioGroup : CheckboxGroup"
+            :is="groupComponentMap[question.type]"
             :label="question.label"
             :options="question.options"
             v-model:value="form[question.model as keyof FormDataQ2]"
             class="my-5"
         />
-        <div
-            v-if="question.otherField && form[question.model as keyof FormDataQ2]?.includes('other')"
-            class="mt-2"
-        >
-            <input
-                v-model="form[question.otherField as keyof FormDataQ2]"
-                type="text"
-                placeholder="請填寫其他內容"
-                class="border p-2 w-full"
-            />
-        </div>
         <p v-if="v$[question.model]?.$error" class="text-red-500">
             此欄位為必填。
         </p>

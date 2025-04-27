@@ -3,8 +3,8 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-const navigateToQuiz = () => {
-    router.push("/quiz");
+const navigateToIntro = () => {
+    router.push("/intro");
 };
 </script>
 
@@ -14,10 +14,10 @@ const navigateToQuiz = () => {
             Welcome to Dogeeeeeeeeeeeeeeeeeeeeee!
         </h1>
         <button
-            @click="navigateToQuiz"
+            @click="navigateToIntro"
             class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-            開始測驗
+            了解問卷
         </button>
     </div>
 </template>

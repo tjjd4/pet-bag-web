@@ -3,14 +3,12 @@ import { reactive } from "vue";
 import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 
-import RadioGroup from "./RadioGroup.vue";
-import SelectGroup from "./SelectGroup.vue";
-import { type IQuestion } from "../types/types.ts";
+import { groupComponentMap } from "./groupComponentMap";
+import { type IQuestion } from "../types/types";
 import { type FormDataQ1 } from "../types/formData";
 
 const props = defineProps<{
     nextStep: () => void;
-    prevStep: () => void;
 }>();
 
 const emits = defineEmits<{
@@ -18,82 +16,100 @@ const emits = defineEmits<{
 }>();
 
 const form = reactive<FormDataQ1>({
-    petMeals: null,
-    petFoodType: null,
-    petAllergies: null,
-    waterIntake: null,
-    activityLevel: null,
-    frequentOuting: null,
+    petType: null,
+    petAge: null,
+    petGender: null,
+    petBreed: null,
+    petWeight: null,
+    petBodyType: null,
 });
 
 const rules: Record<keyof FormDataQ1, any> = {
-    petMeals: { required },
-    petFoodType: { required },
-    petAllergies: { required },
-    waterIntake: { required },
-    activityLevel: { required },
-    frequentOuting: { required },
+    petType: { required },
+    petAge: { required },
+    petGender: { required },
+    petBreed: { required },
+    petWeight: { required },
+    petBodyType: { required },
 };
 
 const questions: IQuestion<FormDataQ1>[] = [
     {
-        label: "寵物一天吃幾餐？",
-        model: "petMeals",
+        label: "您的愛寵是？",
+        model: "petType",
         type: "radio",
         options: [
-            { text: "1餐", value: "one_meal" },
-            { text: "早晚2餐", value: "two_meals" },
-            { text: "一天3餐", value: "three_meals" },
-            { text: "吃到飽模式", value: "free_feeding" },
+            { text: "貓咪", value: "cat" },
+            { text: "狗狗", value: "dog" },
         ],
     },
     {
-        label: "平時是吃什麼形式的正餐？",
-        model: "petFoodType",
+        label: "寵物年齡是幾歲？",
+        model: "petAge",
         type: "radio",
         options: [
-            { text: "乾糧飼料", value: "dry_food" },
-            { text: "罐頭", value: "canned_food" },
-            { text: "鮮食(自己煮菜煮肉)", value: "home_cooked" },
-            { text: "生食", value: "raw_food" },
+            { text: "0-2 歲 (幼年)", value: "age_0_2" },
+            { text: "3-5 歲 (成年)", value: "age_3_5" },
+            { text: "5-10 歲 (中年)", value: "age_5_10" },
+            { text: "10+ 歲 (老年)", value: "age_10_plus" },
         ],
     },
     {
-        label: "寵物對什麼食物過敏，不喜歡吃？",
-        model: "petAllergies",
+        label: "寵物的生理性別？",
+        model: "petGender",
         type: "radio",
         options: [
-            { text: "容易過敏1", value: "allergen_1" },
-            { text: "容易過敏2", value: "allergen_2" },
+            { text: "男", value: "male" },
+            { text: "女", value: "female" },
         ],
     },
     {
-        label: "飲水量：",
-        model: "waterIntake",
-        type: "radio",
+        label: "寵物是什麼品種？",
+        model: "petBreed",
+        type: "select",
         options: [
-            { text: "少", value: "low" },
-            { text: "適中", value: "medium" },
-            { text: "多", value: "high" },
+            { text: "柴犬", value: "shiba_inu" },
+            { text: "哈士奇", value: "siberian_husky" },
+            { text: "拉布拉多", value: "labrador_retriever" },
+            { text: "黃金獵犬", value: "golden_retriever" },
+            { text: "柯基", value: "pembroke_welsh_corgi" },
+            { text: "鬆獅犬", value: "chow_chow" },
+            { text: "貴賓犬", value: "poodle" },
+            { text: "法鬥", value: "french_bulldog" },
+            { text: "秋田犬", value: "akita" },
+            { text: "邊境牧羊犬", value: "border_collie" },
+            { text: "英短", value: "british_shorthair" },
+            { text: "美短", value: "american_shorthair" },
+            { text: "布偶貓", value: "ragdoll" },
+            { text: "緬因貓", value: "maine_coon" },
+            { text: "加菲貓", value: "exotic_shorthair" },
+            { text: "挪威森林貓", value: "norwegian_forest_cat" },
+            { text: "孟加拉貓", value: "bengal" },
+            { text: "蘇格蘭摺耳貓", value: "scottish_fold" },
+            { text: "暹羅貓", value: "siamese" },
+            { text: "俄羅斯藍貓", value: "russian_blue" },
         ],
     },
     {
-        label: "活動量：",
-        model: "activityLevel",
+        label: "寵物的體重是多少？",
+        model: "petWeight",
         type: "radio",
         options: [
-            { text: "低", value: "low" },
-            { text: "中", value: "medium" },
-            { text: "高", value: "high" },
+            { text: "1-5 公斤", value: "weight_1_5" },
+            { text: "5-10 公斤", value: "weight_5_10" },
+            { text: "10-15 公斤", value: "weight_10_15" },
+            { text: "15-20 公斤", value: "weight_15_20" },
+            { text: "20-25 公斤", value: "weight_20_25" },
         ],
     },
     {
-        label: "是否經常外出：",
-        model: "frequentOuting",
+        label: "寵物的體型是？",
+        model: "petBodyType",
         type: "radio",
         options: [
-            { text: "是", value: "yes" },
-            { text: "否", value: "no" },
+            { text: "過瘦", value: "underweight" },
+            { text: "正常", value: "normal" },
+            { text: "過胖", value: "overweight" },
         ],
     },
 ];
@@ -103,11 +119,13 @@ const v$ = useVuelidate(rules, form);
 const handleSubmit = () => {
     v$.value.$validate();
     if (!v$.value.$invalid) {
-        console.log(`[QuizStep1] ${form}`);
+        console.log(`[QuizStep0] ${form}`);
         emits("updateForm", form);
         props.nextStep();
     } else {
-        console.log(`[QuizStep1] Not all questiones are anwsered.`);
+        console.log(
+            `[QuizStep0] Not all questiones are anwsered.\n ${form.petAge}, ${form.petGender}, ${form.petType}`,
+        );
         alert("請完成所有必填項目。");
     }
 };
@@ -116,7 +134,7 @@ const handleSubmit = () => {
 <template>
     <div v-for="question in questions" :key="question.label">
         <component
-            :is="question.type === 'select' ? SelectGroup : RadioGroup"
+            :is="groupComponentMap[question.type]"
             :label="question.label"
             :options="question.options"
             v-model:value="form[question.model as keyof FormDataQ1]"
@@ -132,12 +150,6 @@ const handleSubmit = () => {
             class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg"
         >
             下一題
-        </button>
-        <button
-            @click="prevStep"
-            class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
-        >
-            上一步
         </button>
     </div>
 </template>

@@ -1,4 +1,4 @@
-export interface FormDataQ0 {
+export interface FormDataQ1 {
   petType: string | null;         // 狗 / 貓
   petBreed: string | null;        // 品種（自由填寫）
   petAge: string | null;          // 年齡區間
@@ -7,7 +7,7 @@ export interface FormDataQ0 {
   petBodyType: string | null;     // 體型（過瘦/正常/過胖）
 }
 
-export interface FormDataQ1 {
+export interface FormDataQ2 {
   petMeals: string | null;
   petFoodType: string | null;
   petAllergies: string | null;
@@ -16,7 +16,7 @@ export interface FormDataQ1 {
   frequentOuting: string | null;     // 是否經常外出
 }
 
-export interface FormDataQ2 {
+export interface FormDataQ3 {
   stoolCondition: string | null;            // 便便狀態
   stoolFrequency: string | null;            // 排便頻率
   stressBehaviors: string[] | null;         // 焦慮行為（可複選）
@@ -27,10 +27,17 @@ export interface FormDataQ2 {
   otherStressSource?: string | null;         // 其他壓力來源
 }
 
-export interface FormDataQ3 {
+export interface FormDataQ4 {
   appetite: string | null;
   metabolism: string | null;
   skinCondition: string | null;
   furCondition: string | null;
   neutered: string | null;
+}
+
+export interface FormDataSelection {
+  nutrition: string | null;
+  exercise: string | null;
+  medical: string | null;
+  environment: string | null;
 }

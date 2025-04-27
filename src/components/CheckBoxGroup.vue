@@ -29,7 +29,7 @@ watch(
             <label
                 v-for="option in options"
                 :key="option.value"
-                class="flex items-center gap-2 cursor-pointer"
+                class="cursor-pointer"
             >
                 <input
                     type="checkbox"
@@ -37,15 +37,16 @@ watch(
                     v-model="selected"
                     class="hidden"
                 />
-                <span
+                <div
                     :class="[
-                        'w-4 h-4 flex items-center justify-center border-2 rounded',
+                        'px-4 py-2 rounded-lg border transition-colors duration-200',
                         selected.includes(option.value)
-                            ? 'bg-teal-600'
-                            : 'bg-gray-200',
+                            ? 'bg-cyan-600 text-white border-cyan-600'
+                            : 'bg-transparent text-gray-700 border-gray-300 hover:bg-cyan-100 hover:border-cyan-300'
                     ]"
-                ></span>
-                {{ option.text }}
+                >
+                    {{ option.text }}
+                </div>
             </label>
         </div>
     </div>
