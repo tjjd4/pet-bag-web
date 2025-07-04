@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import QuizStep2 from "./QuizStep2.vue";
 import { type FormDataPhase2 } from "../types/formData";
 import { type FormDataPhase2Selection } from "../types/types";
