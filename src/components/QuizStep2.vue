@@ -1,143 +1,151 @@
 <script setup lang="ts">
-import { reactive } from "vue";
-import useVuelidate from "@vuelidate/core";
-import { required } from "@vuelidate/validators";
-
-import { groupComponentMap } from "./groupComponentMap";
-import { type IQuestion } from "../types/types.ts";
-import { type FormDataQ2 } from "../types/formData";
+import { reactive, watch } from "vue";
+import { type FormDataPhase2Selection } from "../types/types";
 
 const props = defineProps<{
-    nextStep: () => void;
-    prevStep: () => void;
+    section: FormDataPhase2Selection;
+    sectionLabel: string;
+    initialData?: Record<number, string> | null;
 }>();
 
 const emits = defineEmits<{
-    (e: "updateForm", formData: FormDataQ2): void;
+    (e: "update-form", data: Record<number, string>): void;
 }>();
 
-const form = reactive<FormDataQ2>({
-    petMeals: null,
-    petFoodType: null,
-    petAllergies: null,
-    waterIntake: null,
-    activityLevel: null,
-    frequentOuting: null,
-});
-
-const rules: Record<keyof FormDataQ2, any> = {
-    petMeals: { required },
-    petFoodType: { required },
-    petAllergies: { required },
-    waterIntake: { required },
-    activityLevel: { required },
-    frequentOuting: { required },
+// 問題資料
+const questions: Record<FormDataPhase2Selection, { id: number; text: string; options: string[] }[]> = {
+  skin: [
+    {
+      id: 1,
+      text: "毛髮狀況",
+      options: ["亮澤柔順", "局部掉毛", "大量掉毛 / 打結 / 黏塊"],
+    },
+    {
+      id: 2,
+      text: "是否搔癢或舔咬身體？",
+      options: ["無", "偶爾", "頻繁"],
+    },
+    {
+      id: 3,
+      text: "有無異常氣味或皮屑？",
+      options: ["無", "明顯異味", "可見皮屑 / 結痂"],
+    },
+    {
+      id: 4,
+      text: "掉毛或搔癢集中在哪個部位？",
+      options: ["背部", "腹部", "四肢", "全身", "不確定"],
+    },
+    {
+      id: 5,
+      text: "是否曾更換洗毛精、床墊、環境等？",
+      options: ["否", "是（請描述）"],
+    },
+  ],
+  joint: [
+    {
+      id: 1,
+      text: "走路時是否有異常？",
+      options: ["無異常", "步態僵硬 / 偏斜", "跛行 / 拖腳"],
+    },
+    {
+      id: 2,
+      text: "是否抗拒跳高、上下樓？",
+      options: ["無", "偶爾不願意", "完全抗拒"],
+    },
+    {
+      id: 3,
+      text: "是否聽見關節「喀喀聲」？",
+      options: ["無", "偶爾", "經常"],
+    },
+    {
+      id: 4,
+      text: "出現問題的時段？",
+      options: ["沒特別時段", "運動後", "起床時"],
+    },
+    {
+      id: 5,
+      text: "有無過往診斷過關節退化 / 骨骼問題？",
+      options: ["無", "有（請填寫）"],
+    },
+  ],
+  digestion: [
+    {
+      id: 1,
+      text: "食慾情況",
+      options: ["吃得正常", "吃得比以前少", "拒食 / 進食困難"],
+    },
+    {
+      id: 2,
+      text: "嘔吐狀況",
+      options: ["無", "偶爾（1~2次/週）", "頻繁（3次以上/週）"],
+    },
+    {
+      id: 3,
+      text: "排便狀況",
+      options: ["成形正常", "軟便 / 水便", "便秘 / 排便費力"],
+    },
+    {
+      id: 4,
+      text: "是否有吃異物或人類食物？",
+      options: ["無", "有（請填寫物品）"],
+    },
+    {
+      id: 5,
+      text: "最近是否更換食物或營養補充？",
+      options: ["無", "有（請描述品牌 / 種類）"],
+    },
+  ],
 };
 
-const questions: IQuestion<FormDataQ2>[] = [
-    {
-        label: "寵物一天吃幾餐？",
-        model: "petMeals",
-        type: "radio",
-        options: [
-            { text: "1餐", value: "one_meal" },
-            { text: "早晚2餐", value: "two_meals" },
-            { text: "一天3餐", value: "three_meals" },
-            { text: "吃到飽模式", value: "free_feeding" },
-        ],
-    },
-    {
-        label: "平時是吃什麼形式的正餐？",
-        model: "petFoodType",
-        type: "radio",
-        options: [
-            { text: "乾糧飼料", value: "dry_food" },
-            { text: "罐頭", value: "canned_food" },
-            { text: "鮮食(自己煮菜煮肉)", value: "home_cooked" },
-            { text: "生食", value: "raw_food" },
-        ],
-    },
-    {
-        label: "寵物對什麼食物過敏，不喜歡吃？",
-        model: "petAllergies",
-        type: "radio",
-        options: [
-            { text: "無", value: "none" },
-            { text: "容易過敏1", value: "allergen_1" },
-            { text: "容易過敏2", value: "allergen_2" },
-        ],
-    },
-    {
-        label: "飲水量：",
-        model: "waterIntake",
-        type: "radio",
-        options: [
-            { text: "少 (幾乎不主動喝水)", value: "low" },
-            { text: "適中", value: "medium" },
-            { text: "多 (特別愛喝水)", value: "high" },
-        ],
-    },
-    {
-        label: "活動量：",
-        model: "activityLevel",
-        type: "radio",
-        options: [
-            { text: "低 (大部分時間都躺著)", value: "low" },
-            { text: "中", value: "medium" },
-            { text: "高 (每天運動超過1小時)", value: "high" },
-        ],
-    },
-    {
-        label: "是否經常外出：",
-        model: "frequentOuting",
-        type: "radio",
-        options: [
-            { text: "是 (散步/旅行/其他)", value: "yes" },
-            { text: "否 (主要在家)", value: "no" },
-        ],
-    },
-];
+// Initialize answers with initial data
+const answers = reactive<Record<number, string>>(
+    props.initialData || {}
+);
 
-const v$ = useVuelidate(rules, form);
-
-const handleSubmit = () => {
-    v$.value.$validate();
-    if (!v$.value.$invalid) {
-        console.log(`[QuizStep1] ${form}`);
-        emits("updateForm", form);
-        props.nextStep();
-    } else {
-        console.log(`[QuizStep1] Not all questiones are anwsered.`);
-        alert("請完成所有必填項目。");
+// Watch for changes in initialData prop and update answers
+watch(() => props.initialData, (newData) => {
+    if (newData) {
+        Object.assign(answers, newData);
     }
+}, { immediate: true });
+
+// Watch answers and emit updates
+watch(answers, (newAnswers) => {
+    emits("update-form", { ...newAnswers });
+}, { deep: true });
+
+const handleAnswerChange = (questionId: number, value: string) => {
+    answers[questionId] = value;
 };
 </script>
 
 <template>
-    <div v-for="question in questions" :key="question.label">
-        <component
-            :is="groupComponentMap[question.type]"
-            :label="question.label"
-            :options="question.options"
-            v-model:value="form[question.model as keyof FormDataQ2]"
-            class="my-5"
-        />
-        <p v-if="v$[question.model]?.$error" class="text-red-500">
-            此欄位為必填。
-        </p>
-    </div>
-    <div class="flex flex-row-reverse justify-between mt-6">
-        <button
-            @click="handleSubmit"
-            class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg"
+    <div class="space-y-8">
+        <div
+            v-for="question in questions[section]"
+            :key="question.id"
+            class="mb-6"
         >
-            下一題
-        </button>
-        <button
-            @click="prevStep"
-            class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
-        >
-            上一步
-        </button>
+            <p class="mb-4 font-semibold text-base text-gray-800">
+                {{ question.id }}. {{ question.text }}
+            </p>
+            <div class="flex flex-col gap-3">
+                <label
+                    v-for="option in question.options"
+                    :key="option"
+                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                    <input
+                        type="radio"
+                        :name="'q' + section + '_' + question.id"
+                        :value="option"
+                        :checked="answers[question.id] === option"
+                        @change="handleAnswerChange(question.id, option)"
+                        class="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                    />
+                    <span class="text-gray-700">{{ option }}</span>
+                </label>
+            </div>
+        </div>
     </div>
 </template>

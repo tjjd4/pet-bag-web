@@ -9,6 +9,7 @@ import { type FormDataQ1 } from "../types/formData";
 
 const props = defineProps<{
     nextStep: () => void;
+    initialData?: FormDataQ1 | null;
 }>();
 
 const emits = defineEmits<{
@@ -16,16 +17,18 @@ const emits = defineEmits<{
 }>();
 
 const form = reactive<FormDataQ1>({
-    petType: null,
-    petAge: null,
-    petGender: null,
-    petBreed: null,
-    petWeight: null,
-    petBodyType: null,
+    petType: props.initialData?.petType || null,
+    petName: props.initialData?.petName || null,
+    petAge: props.initialData?.petAge || null,
+    petGender: props.initialData?.petGender || null,
+    petBreed: props.initialData?.petBreed || null,
+    petWeight: props.initialData?.petWeight || null,
+    petBodyType: props.initialData?.petBodyType || null,
 });
 
 const rules: Record<keyof FormDataQ1, any> = {
     petType: { required },
+    petName: { required },
     petAge: { required },
     petGender: { required },
     petBreed: { required },
@@ -44,14 +47,26 @@ const questions: IQuestion<FormDataQ1>[] = [
         ],
     },
     {
+        label: "",
+        model: "petName",
+        type: "text",
+        options: [],
+        props: {
+            placeholder: "請輸入寵物名稱",
+        },
+    },
+    {
         label: "寵物年齡是幾歲？",
         model: "petAge",
-        type: "radio",
+        type: "select",
         options: [
-            { text: "0-2 歲 (幼年)", value: "age_0_2" },
-            { text: "3-5 歲 (成年)", value: "age_3_5" },
-            { text: "5-10 歲 (中年)", value: "age_5_10" },
-            { text: "10+ 歲 (老年)", value: "age_10_plus" },
+            { text: "0-1 歲 (幼年)", value: "age_0_1" },
+            { text: "2-3 歲 (幼年)", value: "age_2_3" },
+            { text: "4-5 歲 (成年)", value: "age_4_5" },
+            { text: "6-7 歲 (成年)", value: "age_6_7" },
+            { text: "8-9 歲 (成年)", value: "age_8_9" },
+            { text: "10-12 歲 (老年)", value: "age_10_12" },
+            { text: "12 歲以上 (老年)", value: "age_12_plus" },
         ],
     },
     {
@@ -93,7 +108,7 @@ const questions: IQuestion<FormDataQ1>[] = [
     {
         label: "寵物的體重是多少？",
         model: "petWeight",
-        type: "radio",
+        type: "select",
         options: [
             { text: "1-5 公斤", value: "weight_1_5" },
             { text: "5-10 公斤", value: "weight_5_10" },
@@ -119,12 +134,12 @@ const v$ = useVuelidate(rules, form);
 const handleSubmit = () => {
     v$.value.$validate();
     if (!v$.value.$invalid) {
-        console.log(`[QuizStep0] ${form}`);
+        console.log(`[QuizStep1] ${form}`);
         emits("updateForm", form);
         props.nextStep();
     } else {
         console.log(
-            `[QuizStep0] Not all questiones are anwsered.\n ${form.petAge}, ${form.petGender}, ${form.petType}`,
+            `[QuizStep1] Not all questiones are anwsered.\n ${form.petName}, ${form.petAge}, ${form.petGender}, ${form.petType}, ${form.petBreed}, ${form.petWeight}, ${form.petBodyType}`,
         );
         alert("請完成所有必填項目。");
     }
@@ -132,24 +147,31 @@ const handleSubmit = () => {
 </script>
 
 <template>
-    <div v-for="question in questions" :key="question.label">
-        <component
-            :is="groupComponentMap[question.type]"
-            :label="question.label"
-            :options="question.options"
-            v-model:value="form[question.model as keyof FormDataQ1]"
-            class="my-5"
-        />
-        <p v-if="v$[question.model]?.$error" class="text-red-500">
-            此欄位為必填。
-        </p>
-    </div>
-    <div class="flex flex-row-reverse justify-between mt-6">
-        <button
-            @click="handleSubmit"
-            class="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg"
-        >
-            下一題
-        </button>
+    <div class="min-h-screen bg-white px-4 py-6 flex flex-col">
+            <h1 class="text-xl font-semibold text-gray-800 mb-6 text-left">寵物基本資料卡</h1>
+            <div v-for="question in questions" :key="question.label" class="text-center mb-6">
+                <div class="flex justify-center items-center">
+                    <component
+                        :is="groupComponentMap[question.type]"
+                        :label="question.label"
+                        :options="question.options"
+                        v-model:value="form[question.model as keyof FormDataQ1]"
+                        class="w-full max-w-xs"
+                        :optionClass="'flex justify-center items-center'"
+                        :props="question.props"
+                    />
+                </div>
+                <p v-if="v$[question.model]?.$error" class="text-red-500 text-sm mt-1">
+                    此欄位為必填。
+                </p>
+            </div>
+            <div class="flex flex-row-reverse justify-between mt-6">
+                <button
+                    @click="handleSubmit"
+                    class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                    下一題
+                </button>
+            </div>
     </div>
 </template>

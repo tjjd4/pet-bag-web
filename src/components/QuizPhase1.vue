@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import QuizStep1 from "./QuizStep1.vue";
-import QuizStep2 from "./QuizStep2.vue";
-import QuizStep3 from "./QuizStep3.vue";
-import { type FormDataQ1, type FormDataQ2, type FormDataQ3 } from "../types/formData";
+import { type FormDataQ1 } from "../types/formData";
 
-const currentStep = ref(0);
+const props = defineProps<{
+    initialData?: FormDataQ1 | null;
+}>();
+
+const emits = defineEmits<{
+    (e: "phase-complete", data: FormDataQ1): void;
+}>();
+
+const currentStep = ref(1);
 const totalSteps = 5;
 
 const nextStep = () => {
@@ -20,65 +26,51 @@ const prevStep = () => {
     }
 };
 
-const formDataStep1 = ref<FormDataQ1 | null>(null);
+const proceedToPhase2 = () => {
+    if (formDataStep1.value) {
+        emits("phase-complete", formDataStep1.value);
+    }
+};
+
+const formDataStep1 = ref<FormDataQ1 | null>(props.initialData || null);
 
 const handleFormDataQ1Update = (data: FormDataQ1) => {
     formDataStep1.value = data;
-};
-const formDataStep2 = ref<FormDataQ2 | null>(null);
-
-const handleFormDataQ2Update = (data: FormDataQ2) => {
-    formDataStep2.value = data;
-};
-const formDataStep3 = ref<FormDataQ3 | null>(null);
-
-const handleFormDataQ3Update = (data: FormDataQ3) => {
-    formDataStep3.value = data;
 };
 </script>
 
 <template>
     <div>
-        <div v-if="currentStep === 0">
-            <h1 class="text-xl font-semibold text-center mb-4">第一階段：</h1>
-            <h2 class="text-lg font-semibold text-center mb-4">基本資訊 & 生活習慣</h2>
-            <div class="flex justify-center mt-6">
-                <button
-                    class="bg-gray-400 text-white px-8 py-3 rounded-xl text-lg font-bold shadow-md hover:bg-gray-500 transition duration-300"
-                    @click="nextStep"
-                >
-                    開始!
-                </button>
-            </div>
-        </div>
         <div v-if="currentStep === 1">
-            <h1 class="text-xl font-semibold text-center mb-4">基本資訊</h1>
             <QuizStep1
                 :nextStep="nextStep"
+                :initial-data="formDataStep1"
                 @updateForm="handleFormDataQ1Update"
             />
         </div>
         <div v-if="currentStep === 2">
-            <h1 class="text-xl font-semibold text-center mb-4">生活習慣</h1>
-            <QuizStep2
-                :prevStep="prevStep"
-                :nextStep="nextStep"
-                @updateForm="handleFormDataQ2Update"
-            />
-        </div>
-        <div v-if="currentStep === 3">
-            <h1 class="text-xl font-semibold text-center mb-4">生活習慣</h1>
-            <QuizStep3
-                :nextStep="nextStep"
-                :prevStep="prevStep"
-                @updateForm="handleFormDataQ3Update"
-            />
-        </div>
-        <div v-if="currentStep === 4">
-            <div>Finish!!!</div>
-            <div>{{ formDataStep1 }}</div>
-            <div>{{ formDataStep2 }}</div>
-            <div>{{ formDataStep3 }}</div>
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-green-600 mb-4">Phase 1 完成！</h2>
+                <p class="text-gray-600 mb-6">您已完成基本資料填寫</p>
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-semibold mb-2">您的填寫資料：</h3>
+                    <pre class="text-sm">{{ formDataStep1 }}</pre>
+                </div>
+                <div class="flex gap-4 justify-center">
+                    <button 
+                        @click="prevStep"
+                        class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                        返回修改
+                    </button>
+                    <button 
+                        @click="proceedToPhase2"
+                        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                        前往 Phase 2
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </template>

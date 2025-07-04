@@ -1,104 +1,142 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
-import { type IQuestion } from "../types/types";
-import { type FormDataSelection } from "../types/formData";
+import { ref, computed } from "vue";
+import QuizStep2 from "./QuizStep2.vue";
+import { type FormDataPhase2 } from "../types/formData";
+import { type FormDataPhase2Selection } from "../types/types";
 
-// Placeholder quiz section definitions
-const quizSections: IQuestion<FormDataSelection>[] = [
-    {
-        label: "您的愛寵是？",
-        model: "petType",
-        type: "checkbox",
-        options: [
-            { text: "貓咪", value: "cat" },
-            { text: "狗狗", value: "dog" },
-        ],
-    },
-    { label: "營養 (Nutrition)", model: "nutrition", type: "checkbox" },
-    { label: "運動 (Exercise)", model: "exercise", type: "checkbox" },
-    { label: "醫療史 (Medical History)", model: "medical", type: "checkbox" },
-    { label: "生活環境 (Living Environment)", model: "environment", type: "checkbox" },
+const props = defineProps<{
+    initialData?: FormDataPhase2 | null;
+}>();
+
+const emits = defineEmits<{
+    (e: "go-back"): void;
+    (e: "phase-complete", data: FormDataPhase2): void;
+}>();
+
+// Section options and current state
+const sectionOptions = [
+  { label: "皮膚問題", value: "skin" as FormDataPhase2Selection },
+  { label: "關節問題", value: "joint" as FormDataPhase2Selection },
+  { label: "消化問題", value: "digestion" as FormDataPhase2Selection },
 ];
 
-const form = reactive<FormDataSelection>({
-    nutrition: null,
-    exercise: null,
-    medical: null,
-    environment: null,
+const currentSection = ref<FormDataPhase2Selection | null>("skin");
+
+// 切換 section 的方法 - 支持開關功能
+function selectSection(section: FormDataPhase2Selection) {
+  if (currentSection.value === section) {
+    // 如果點擊的是當前已打開的section，則關閉它
+    currentSection.value = null;
+  } else {
+    // 否則打開新的section
+    currentSection.value = section;
+  }
+}
+
+const goBackToPhase1 = () => {
+    emits("go-back");
+};
+
+// Data management
+const formDataPhase2 = ref<FormDataPhase2>({
+    skin: props.initialData?.skin || {},
+    joint: props.initialData?.joint || {},
+    digestion: props.initialData?.digestion || {},
 });
 
-const phase = ref<"select" | "quiz" | "done">("select");
-const selectedSections = ref<string[]>([]);
-const currentSectionIdx = ref(0);
+const handleSectionUpdate = (section: FormDataPhase2Selection) => (sectionData: Record<number, string>) => {
+    formDataPhase2.value[section] = sectionData;
+};
 
-function startQuiz() {
-  if (selectedSections.value.length > 0) {
-    phase.value = "quiz";
-    currentSectionIdx.value = 0;
-  }
-}
 
-function nextSection() {
-  if (currentSectionIdx.value < selectedSections.value.length - 1) {
-    currentSectionIdx.value++;
-  } else {
-    // Quiz phase finished, handle accordingly (emit event, show summary, etc.)
-    phase.value = "done";
-  }
-}
+const proceedToResults = () => {
+  emits("phase-complete", formDataPhase2.value);
+};
 </script>
 
 <template>
-  <div>
-    <div v-if="phase === 'select'">
-      <h1 class="text-xl font-semibold text-center mb-4">第二階段：</h1>
-      <h2 class="text-lg font-semibold text-center mb-4">健康狀況 & 需求或目標</h2>
-      <div class="mb-6">
-        <CheckboxGroup
-            :label="quizSections.label"
-            :options="quizSections.options"
-            v-model:value="form[quizSections.model as keyof FormDataSelection]"
-            class="my-5"
-        />
-      </div>
-      <div class="flex justify-center mt-6">
-        <button
-          class="bg-cyan-600 text-white px-8 py-3 rounded-xl text-lg font-bold shadow-md hover:bg-cyan-700 transition duration-300"
-          :disabled="selectedSections.length === 0"
-          @click="startQuiz"
-        >
-          下一步
-        </button>
-      </div>
+    <div>
+        <!-- Header with back button -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <button 
+                    @click="goBackToPhase1"
+                    class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    返回 Phase 1
+                </button>
+                <h1 class="text-2xl font-bold text-purple-600">Phase 2: 健康狀況評估</h1>
+                <div></div> <!-- Spacer for flex layout -->
+            </div>
+        </div>
+        
+        <!-- 側邊 section 導覽及問題 -->
+        <div class="flex flex-col gap-2">
+            <div v-for="section in sectionOptions" :key="section.value">
+                <button
+                    @click="selectSection(section.value)"
+                    :class="[
+                        'px-2 py-1 border-l-4 text-left w-full',
+                        currentSection === section.value
+                            ? 'border-purple-600 text-purple-600'
+                            : 'border-transparent hover:border-purple-300'
+                    ]"
+                >
+                    {{ section.label }}
+                </button>
+                <transition name="fade-slide">
+                    <div
+                        v-if="currentSection === section.value"
+                        class="pl-4 mt-2"
+                    >
+                        <QuizStep2
+                            :section="section.value"
+                            :section-label="section.label"
+                            :initial-data="formDataPhase2[section.value]"
+                            @update-form="handleSectionUpdate(section.value)"
+                        />
+                    </div>
+                </transition>
+            </div>
+        </div>
+        
+        <!-- Results button -->
+        <div class="mt-8 text-center">
+            <div class="p-6 bg-green-50 rounded-lg border border-green-200">
+                <h3 class="text-lg font-semibold text-green-800 mb-2">
+                    🎉 評估完成！
+                </h3>
+                <p class="text-green-600 mb-4">
+                    您已完成相關健康狀況評估，點擊下方按鈕查看結果
+                </p>
+                <button 
+                    @click="proceedToResults"
+                    class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                >
+                    查看評估結果
+                </button>
+            </div>
+        </div>
     </div>
-
-    <div v-else-if="phase === 'quiz'">
-      <h1 class="text-xl font-semibold text-center mb-4">
-        {{ quizSections.find(s => s.value === selectedSections[currentSectionIdx])?.label }} 問卷
-      </h1>
-      <!-- Placeholder for quiz step component, replace with real component later -->
-      <div class="mb-6 p-4 border rounded text-center bg-gray-50">
-        <p class="text-lg text-gray-700">
-          這裡將顯示 {{ quizSections.find(s => s.value === selectedSections[currentSectionIdx])?.label }} 的相關問題。
-        </p>
-      </div>
-      <div class="flex justify-center mt-6">
-        <button
-          class="bg-cyan-600 text-white px-8 py-3 rounded-xl text-lg font-bold shadow-md hover:bg-cyan-700 transition duration-300"
-          @click="nextSection"
-        >
-          {{ currentSectionIdx < selectedSections.length - 1 ? '下一部分' : '完成' }}
-        </button>
-      </div>
-    </div>
-
-    <div v-else-if="phase === 'done'">
-      <h1 class="text-xl font-semibold text-center mb-4">問卷已完成！</h1>
-      <p class="text-center">感謝您的填寫。</p>
-    </div>
-  </div>
 </template>
 
 <style scoped>
-/* Add custom styles here if needed */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  max-height: 1000px;
+}
 </style>

@@ -13,6 +13,11 @@ const routes = [
       // meta: { requiresAuth: true },
     },
     {
+      path: '/result',
+      name: 'Result',
+      component: () => import('../views/Result.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*', // 捕獲所有未匹配的路由
       name: 'NotFound',
       component: () => import('../views/NotFound.vue'),
