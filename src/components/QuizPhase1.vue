@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import QuizStep1 from "./QuizStep1.vue";
-import { type FormDataQ1 } from "../types/formData";
+import { type FormDataQ1 } from "../types/types";
 
 const props = defineProps<{
     initialData?: FormDataQ1 | null;
@@ -27,15 +27,15 @@ const prevStep = () => {
 };
 
 const proceedToPhase2 = () => {
-    if (formDataStep1.value) {
-        emits("phase-complete", formDataStep1.value);
+    if (formDataQ1.value) {
+        emits("phase-complete", formDataQ1.value);
     }
 };
 
-const formDataStep1 = ref<FormDataQ1 | null>(props.initialData || null);
+const formDataQ1 = ref<FormDataQ1 | null>(props.initialData || null);
 
 const handleFormDataQ1Update = (data: FormDataQ1) => {
-    formDataStep1.value = data;
+    formDataQ1.value = data;
 };
 </script>
 
@@ -44,7 +44,7 @@ const handleFormDataQ1Update = (data: FormDataQ1) => {
         <div v-if="currentStep === 1">
             <QuizStep1
                 :nextStep="nextStep"
-                :initial-data="formDataStep1"
+                :initial-data="formDataQ1"
                 @updateForm="handleFormDataQ1Update"
             />
         </div>
@@ -54,7 +54,7 @@ const handleFormDataQ1Update = (data: FormDataQ1) => {
                 <p class="text-gray-600 mb-6">您已完成基本資料填寫</p>
                 <div class="mb-4 p-4 bg-gray-50 rounded-lg">
                     <h3 class="font-semibold mb-2">您的填寫資料：</h3>
-                    <pre class="text-sm">{{ formDataStep1 }}</pre>
+                    <pre class="text-sm">{{ formDataQ1 }}</pre>
                 </div>
                 <div class="flex gap-4 justify-center">
                     <button 

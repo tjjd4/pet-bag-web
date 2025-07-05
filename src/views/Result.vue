@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { type FormDataQ1, type FormDataPhase2 } from "../types/formData";
-import { type FormDataPhase2Selection } from "../types/types";
+import { type FormDataQ1, type FormDataQ2, type Q2SelectionType } from "../types/types";
 
 const router = useRouter();
 const phase1Data = ref<FormDataQ1 | null>(null);
-const phase2Data = ref<FormDataPhase2 | null>(null);
+const phase2Data = ref<FormDataQ2 | null>(null);
 
 // Load data from sessionStorage on component mount
 onMounted(() => {
@@ -30,16 +29,26 @@ onMounted(() => {
 // Calculate completion percentage
 const phase2Completion = computed(() => {
     if (!phase2Data.value) return 0;
-    
+
     let totalQuestions = 0;
     let answeredQuestions = 0;
-    
-    const sections: FormDataPhase2Selection[] = ['skin', 'joint', 'digestion'];
+
+    const sections: Q2SelectionType[] = ['skin', 'joint', 'digestion'];
     sections.forEach(section => {
-        totalQuestions += 5; // Each section has 5 questions
-        answeredQuestions += Object.keys(phase2Data.value![section] || {}).length;
+        for (let i = 1; i <= 5; i++) {
+            totalQuestions += 1;
+            const key = `${section}${i}`;
+            if (
+                phase2Data.value &&
+                phase2Data.value[key as keyof typeof phase2Data.value] !== null &&
+                phase2Data.value[key as keyof typeof phase2Data.value] !== undefined &&
+                phase2Data.value[key as keyof typeof phase2Data.value] !== ''
+            ) {
+                answeredQuestions += 1;
+            }
+        }
     });
-    
+
     return Math.round((answeredQuestions / totalQuestions) * 100);
 });
 
@@ -50,8 +59,18 @@ const healthAnalysis = computed(() => {
     const concerns = [];
     
     // Skin analysis
-    const skinAnswers = phase2Data.value.skin || {};
-    if (skinAnswers[1]?.includes('掉毛') || skinAnswers[2] === '頻繁' || skinAnswers[3] !== '無') {
+    const skinAnswers = [
+        phase2Data.value.skin1,
+        phase2Data.value.skin2,
+        phase2Data.value.skin3,
+        phase2Data.value.skin4,
+        phase2Data.value.skin5
+    ];
+    if (
+        skinAnswers[0]?.includes('掉毛') ||
+        skinAnswers[1] === '頻繁' ||
+        skinAnswers[2] !== '無'
+    ) {
         concerns.push({
             category: '皮膚健康',
             level: 'attention',
@@ -60,8 +79,18 @@ const healthAnalysis = computed(() => {
     }
     
     // Joint analysis
-    const jointAnswers = phase2Data.value.joint || {};
-    if (jointAnswers[1] !== '無異常' || jointAnswers[2] === '完全抗拒' || jointAnswers[3] === '經常') {
+    const jointAnswers = [
+        phase2Data.value.joint1,
+        phase2Data.value.joint2,
+        phase2Data.value.joint3,
+        phase2Data.value.joint4,
+        phase2Data.value.joint5
+    ];
+    if (
+        jointAnswers[0] !== '無異常' ||
+        jointAnswers[1] === '完全抗拒' ||
+        jointAnswers[2] === '經常'
+    ) {
         concerns.push({
             category: '關節健康',
             level: 'warning',
@@ -70,8 +99,18 @@ const healthAnalysis = computed(() => {
     }
     
     // Digestion analysis
-    const digestionAnswers = phase2Data.value.digestion || {};
-    if (digestionAnswers[1] !== '吃得正常' || digestionAnswers[2] === '頻繁（3次以上/週）' || digestionAnswers[3] !== '成形正常') {
+    const digestionAnswers = [
+        phase2Data.value.digestion1,
+        phase2Data.value.digestion2,
+        phase2Data.value.digestion3,
+        phase2Data.value.digestion4,
+        phase2Data.value.digestion5
+    ];
+    if (
+        digestionAnswers[0] !== '吃得正常' ||
+        digestionAnswers[1] === '頻繁（3次以上/週）' ||
+        digestionAnswers[2] !== '成形正常'
+    ) {
         concerns.push({
             category: '消化健康',
             level: 'attention',

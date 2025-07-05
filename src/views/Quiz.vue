@@ -3,19 +3,19 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import QuizPhase1 from "../components/QuizPhase1.vue";
 import QuizPhase2 from "../components/QuizPhase2.vue";
-import { type FormDataQ1, type FormDataPhase2 } from "../types/formData";
+import { type FormDataQ1, type FormDataQ2 } from "../types/types";
 
 const router = useRouter();
 const currentPhase = ref<1 | 2>(1);
 const phase1Data = ref<FormDataQ1 | null>(null);
-const phase2Data = ref<FormDataPhase2 | null>(null);
+const phase2Data = ref<FormDataQ2 | null>(null);
 
 const handlePhase1Complete = (data: FormDataQ1) => {
     phase1Data.value = data;
     currentPhase.value = 2;
 };
 
-const handlePhase2Complete = (data: FormDataPhase2) => {
+const handlePhase2Complete = (data: FormDataQ2) => {
     phase2Data.value = data;
     
     if (phase1Data.value && phase2Data.value) {

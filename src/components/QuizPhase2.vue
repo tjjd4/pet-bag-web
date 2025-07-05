@@ -1,56 +1,42 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import QuizStep2 from "./QuizStep2.vue";
-import { type FormDataPhase2 } from "../types/formData";
-import { type FormDataPhase2Selection } from "../types/types";
+import { type FormDataQ2 } from "../types/types";
 
 const props = defineProps<{
-    initialData?: FormDataPhase2 | null;
+    initialData?: FormDataQ2 | null;
 }>();
 
 const emits = defineEmits<{
     (e: "go-back"): void;
-    (e: "phase-complete", data: FormDataPhase2): void;
+    (e: "phase-complete", data: FormDataQ2): void;
 }>();
 
-// Section options and current state
-const sectionOptions = [
-  { label: "皮膚問題", value: "skin" as FormDataPhase2Selection },
-  { label: "關節問題", value: "joint" as FormDataPhase2Selection },
-  { label: "消化問題", value: "digestion" as FormDataPhase2Selection },
-];
+// Data management
+const formDataQ2 = ref<FormDataQ2 | null>(props.initialData || null);
 
-const currentSection = ref<FormDataPhase2Selection | null>("skin");
-
-// 切換 section 的方法 - 支持開關功能
-function selectSection(section: FormDataPhase2Selection) {
-  if (currentSection.value === section) {
-    // 如果點擊的是當前已打開的section，則關閉它
-    currentSection.value = null;
-  } else {
-    // 否則打開新的section
-    currentSection.value = section;
-  }
-}
-
-const goBackToPhase1 = () => {
-    emits("go-back");
+// Handle form updates from QuizStep2
+const handleFormUpdate = (updatedData: FormDataQ2) => {
+    formDataQ2.value = updatedData;
 };
 
-// Data management
-const formDataPhase2 = ref<FormDataPhase2>({
-    skin: props.initialData?.skin || {},
-    joint: props.initialData?.joint || {},
-    digestion: props.initialData?.digestion || {},
+// Check if all sections have valid answers
+const hasValidAnswersInAllSections = computed(() => {
+    const skinAnswers = [formDataQ2.value?.skin1, formDataQ2.value?.skin2, formDataQ2.value?.skin3, formDataQ2.value?.skin4, formDataQ2.value?.skin5];
+    const jointAnswers = [formDataQ2.value?.joint1, formDataQ2.value?.joint2, formDataQ2.value?.joint3, formDataQ2.value?.joint4, formDataQ2.value?.joint5];
+    const digestionAnswers = [formDataQ2.value?.digestion1, formDataQ2.value?.digestion2, formDataQ2.value?.digestion3, formDataQ2.value?.digestion4, formDataQ2.value?.digestion5];
+
+    const hasSkinAnswers = skinAnswers.every(answer => answer !== null);
+    const hasJointAnswers = jointAnswers.every(answer => answer !== null);
+    const hasDigestionAnswers = digestionAnswers.every(answer => answer !== null);
+
+    return hasSkinAnswers && hasJointAnswers && hasDigestionAnswers;
 });
 
-const handleSectionUpdate = (section: FormDataPhase2Selection) => (sectionData: Record<number, string>) => {
-    formDataPhase2.value[section] = sectionData;
-};
-
-
 const proceedToResults = () => {
-  emits("phase-complete", formDataPhase2.value);
+    if (formDataQ2.value) {
+        emits("phase-complete", formDataQ2.value);
+    }
 };
 </script>
 
@@ -60,7 +46,7 @@ const proceedToResults = () => {
         <div class="mb-6">
             <div class="flex items-center justify-between mb-4">
                 <button 
-                    @click="goBackToPhase1"
+                    @click="emits('go-back')"
                     class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,38 +59,14 @@ const proceedToResults = () => {
             </div>
         </div>
         
-        <!-- 側邊 section 導覽及問題 -->
-        <div class="flex flex-col gap-2">
-            <div v-for="section in sectionOptions" :key="section.value">
-                <button
-                    @click="selectSection(section.value)"
-                    :class="[
-                        'px-2 py-1 border-l-4 text-left w-full',
-                        currentSection === section.value
-                            ? 'border-purple-600 text-purple-600'
-                            : 'border-transparent hover:border-purple-300'
-                    ]"
-                >
-                    {{ section.label }}
-                </button>
-                <transition name="fade-slide">
-                    <div
-                        v-if="currentSection === section.value"
-                        class="pl-4 mt-2"
-                    >
-                        <QuizStep2
-                            :section="section.value"
-                            :section-label="section.label"
-                            :initial-data="formDataPhase2[section.value]"
-                            @update-form="handleSectionUpdate(section.value)"
-                        />
-                    </div>
-                </transition>
-            </div>
-        </div>
+        <!-- Quiz questions handled by QuizStep2 -->
+        <QuizStep2 
+            :initial-data="formDataQ2"
+            @update-form="handleFormUpdate"
+        />
         
         <!-- Results button -->
-        <div class="mt-8 text-center">
+        <div v-if="hasValidAnswersInAllSections" class="mt-8 text-center">
             <div class="p-6 bg-green-50 rounded-lg border border-green-200">
                 <h3 class="text-lg font-semibold text-green-800 mb-2">
                     🎉 評估完成！
@@ -122,21 +84,3 @@ const proceedToResults = () => {
         </div>
     </div>
 </template>
-
-<style scoped>
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.5s ease;
-}
-.fade-slide-enter-from,
-.fade-slide-leave-to {
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-}
-.fade-slide-enter-to,
-.fade-slide-leave-from {
-  opacity: 1;
-  max-height: 1000px;
-}
-</style>

@@ -1,151 +1,179 @@
 <script setup lang="ts">
-import { reactive, watch } from "vue";
-import { type FormDataPhase2Selection } from "../types/types";
+import { reactive, watch, ref } from "vue";
+import { type Q2SelectionType, type FormDataQ2 } from "../types/types";
+import { phase2Questions } from "../data/questions";
 
 const props = defineProps<{
-    section: FormDataPhase2Selection;
-    sectionLabel: string;
-    initialData?: Record<number, string> | null;
+    initialData?: FormDataQ2 | null;
 }>();
 
 const emits = defineEmits<{
-    (e: "update-form", data: Record<number, string>): void;
+    (e: "update-form", data: FormDataQ2): void;
 }>();
 
-// 問題資料
-const questions: Record<FormDataPhase2Selection, { id: number; text: string; options: string[] }[]> = {
-  skin: [
-    {
-      id: 1,
-      text: "毛髮狀況",
-      options: ["亮澤柔順", "局部掉毛", "大量掉毛 / 打結 / 黏塊"],
-    },
-    {
-      id: 2,
-      text: "是否搔癢或舔咬身體？",
-      options: ["無", "偶爾", "頻繁"],
-    },
-    {
-      id: 3,
-      text: "有無異常氣味或皮屑？",
-      options: ["無", "明顯異味", "可見皮屑 / 結痂"],
-    },
-    {
-      id: 4,
-      text: "掉毛或搔癢集中在哪個部位？",
-      options: ["背部", "腹部", "四肢", "全身", "不確定"],
-    },
-    {
-      id: 5,
-      text: "是否曾更換洗毛精、床墊、環境等？",
-      options: ["否", "是（請描述）"],
-    },
-  ],
-  joint: [
-    {
-      id: 1,
-      text: "走路時是否有異常？",
-      options: ["無異常", "步態僵硬 / 偏斜", "跛行 / 拖腳"],
-    },
-    {
-      id: 2,
-      text: "是否抗拒跳高、上下樓？",
-      options: ["無", "偶爾不願意", "完全抗拒"],
-    },
-    {
-      id: 3,
-      text: "是否聽見關節「喀喀聲」？",
-      options: ["無", "偶爾", "經常"],
-    },
-    {
-      id: 4,
-      text: "出現問題的時段？",
-      options: ["沒特別時段", "運動後", "起床時"],
-    },
-    {
-      id: 5,
-      text: "有無過往診斷過關節退化 / 骨骼問題？",
-      options: ["無", "有（請填寫）"],
-    },
-  ],
-  digestion: [
-    {
-      id: 1,
-      text: "食慾情況",
-      options: ["吃得正常", "吃得比以前少", "拒食 / 進食困難"],
-    },
-    {
-      id: 2,
-      text: "嘔吐狀況",
-      options: ["無", "偶爾（1~2次/週）", "頻繁（3次以上/週）"],
-    },
-    {
-      id: 3,
-      text: "排便狀況",
-      options: ["成形正常", "軟便 / 水便", "便秘 / 排便費力"],
-    },
-    {
-      id: 4,
-      text: "是否有吃異物或人類食物？",
-      options: ["無", "有（請填寫物品）"],
-    },
-    {
-      id: 5,
-      text: "最近是否更換食物或營養補充？",
-      options: ["無", "有（請描述品牌 / 種類）"],
-    },
-  ],
-};
+// Section options and current state
+const sectionOptions = [
+  { label: "皮膚問題", value: "skin" as Q2SelectionType },
+  { label: "關節問題", value: "joint" as Q2SelectionType },
+  { label: "消化問題", value: "digestion" as Q2SelectionType },
+];
 
-// Initialize answers with initial data
-const answers = reactive<Record<number, string>>(
-    props.initialData || {}
-);
+const currentSection = ref<Q2SelectionType | null>("skin");
 
-// Watch for changes in initialData prop and update answers
+// Initialize form data
+const formData = reactive<FormDataQ2>({
+    skin1: props.initialData?.skin1 || null,
+    skin2: props.initialData?.skin2 || null,
+    skin3: props.initialData?.skin3 || null,
+    skin4: props.initialData?.skin4 || null,
+    skin5: props.initialData?.skin5 || null,
+    joint1: props.initialData?.joint1 || null,
+    joint2: props.initialData?.joint2 || null,
+    joint3: props.initialData?.joint3 || null,
+    joint4: props.initialData?.joint4 || null,
+    joint5: props.initialData?.joint5 || null,
+    digestion1: props.initialData?.digestion1 || null,
+    digestion2: props.initialData?.digestion2 || null,
+    digestion3: props.initialData?.digestion3 || null,
+    digestion4: props.initialData?.digestion4 || null,
+    digestion5: props.initialData?.digestion5 || null,
+});
+
+
+
+// Watch for changes in initialData prop
 watch(() => props.initialData, (newData) => {
     if (newData) {
-        Object.assign(answers, newData);
+        Object.assign(formData, newData);
     }
 }, { immediate: true });
 
-// Watch answers and emit updates
-watch(answers, (newAnswers) => {
-    emits("update-form", { ...newAnswers });
+// Watch form data and emit updates
+watch(formData, (newFormData) => {
+    emits("update-form", { ...newFormData });
 }, { deep: true });
 
-const handleAnswerChange = (questionId: number, value: string) => {
-    answers[questionId] = value;
+// Toggle section functionality
+function selectSection(section: Q2SelectionType) {
+    if (currentSection.value === section) {
+        currentSection.value = null;
+    } else {
+        currentSection.value = section;
+    }
+}
+
+// Helper function to get field name based on section and question id
+const getFieldName = (section: Q2SelectionType, questionId: number): keyof FormDataQ2 => {
+    return `${section}${questionId}` as keyof FormDataQ2;
+};
+
+// Handle answer changes
+const handleAnswerChange = (section: Q2SelectionType, questionId: number, value: string) => {
+    const fieldName = getFieldName(section, questionId);
+    formData[fieldName] = value;
+};
+
+// Check if section has answers
+const sectionHasAnswers = (section: Q2SelectionType): boolean => {
+    const sectionKeys = Object.keys(formData).filter(key => key.startsWith(section)) as Array<keyof FormDataQ2>;
+    return sectionKeys.some(key => formData[key] !== null);
+};
+
+// Check if section is complete (all required questions answered)
+const sectionIsComplete = (section: Q2SelectionType): boolean => {
+    const questions = phase2Questions[section];
+    const requiredQuestions = questions.filter(q => q.required);
+    
+    return requiredQuestions.every(question => {
+        const fieldName = getFieldName(section, question.id);
+        return formData[fieldName] !== null;
+    });
 };
 </script>
 
 <template>
-    <div class="space-y-8">
-        <div
-            v-for="question in questions[section]"
-            :key="question.id"
-            class="mb-6"
-        >
-            <p class="mb-4 font-semibold text-base text-gray-800">
-                {{ question.id }}. {{ question.text }}
-            </p>
-            <div class="flex flex-col gap-3">
-                <label
-                    v-for="option in question.options"
-                    :key="option"
-                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+    <div>
+        <!-- Section navigation -->
+        <div class="flex flex-col gap-2 mb-8">
+            <div v-for="section in sectionOptions" :key="section.value">
+                <button
+                    @click="selectSection(section.value)"
+                    :class="[
+                        'px-2 py-1 border-l-4 text-left w-full flex items-center justify-between',
+                        currentSection === section.value
+                            ? 'border-purple-600 text-purple-600'
+                            : 'border-transparent hover:border-purple-300'
+                    ]"
                 >
-                    <input
-                        type="radio"
-                        :name="'q' + section + '_' + question.id"
-                        :value="option"
-                        :checked="answers[question.id] === option"
-                        @change="handleAnswerChange(question.id, option)"
-                        class="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                    />
-                    <span class="text-gray-700">{{ option }}</span>
-                </label>
+                    <span>{{ section.label }}</span>
+                    <span 
+                        v-if="sectionIsComplete(section.value)"
+                        class="text-green-500 text-sm"
+                    >
+                        ✓
+                    </span>
+                    <span 
+                        v-else-if="sectionHasAnswers(section.value)"
+                        class="text-yellow-500 text-sm"
+                    >
+                        ⚠
+                    </span>
+                </button>
+                
+                <!-- Section questions -->
+                <transition name="fade-slide">
+                    <div
+                        v-if="currentSection === section.value"
+                        class="pl-4 mt-2 space-y-6"
+                    >
+                        <div
+                            v-for="question in phase2Questions[section.value]"
+                            :key="question.id"
+                            class="mb-6"
+                        >
+                            <p class="mb-4 font-semibold text-base text-gray-800">
+                                {{ question.id }}. {{ question.text }}
+                                <span v-if="question.required" class="text-red-500 text-sm ml-1">*</span>
+                            </p>
+                            <div class="flex flex-col gap-3">
+                                <label
+                                    v-for="option in question.options"
+                                    :key="option.value"
+                                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                                >
+                                    <input
+                                        type="radio"
+                                        :name="'q' + section.value + '_' + question.id"
+                                        :value="option.value"
+                                        :checked="formData[getFieldName(section.value, question.id)] === option.value"
+                                        @change="handleAnswerChange(section.value, question.id, option.value)"
+                                        class="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                                    />
+                                    <span class="text-gray-700">{{ option.text }}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </transition>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  max-height: 1000px;
+}
+</style>
