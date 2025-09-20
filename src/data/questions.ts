@@ -1,6 +1,7 @@
 import { 
     type FormDataQ1,
     type FormDataQ2,
+    type FormDataQ3,
     type IQuestion, 
     type Q2SelectionType 
 } from "../types/types";
@@ -110,8 +111,26 @@ export const phase1Questions: IQuestion<FormDataQ1>[] = [
     },
 ];
 
-// Phase 2 Questions - Health Assessment
-export const phase2Questions: { [K in Q2SelectionType]: IQuestion<FormDataQ2>[] } = {
+// Phase 2 Questions - Health Issues Selection
+export const phase2Questions: IQuestion<FormDataQ2>[] = [
+    {
+        id: 1,
+        model: "healthSkin",
+        text: "健康問題主訴（複選問題）",
+        type: "checkbox",
+        required: false,
+        options: [
+            { text: "皮膚", value: "skin", description: "搔癢、紅疹、掉毛" },
+            { text: "關節", value: "joint", description: "Description" },
+            { text: "消化", value: "digestion", description: "Description" },
+            { text: "眼睛", value: "eyes", description: "Description" },
+            { text: "口腔", value: "oral", description: "Description" },
+        ],
+    },
+];
+
+// Phase 3 Questions - Health Assessment
+export const phase3Questions: { [K in Q2SelectionType]: IQuestion<FormDataQ3>[] } = {
     skin: [
         {
             id: 1,

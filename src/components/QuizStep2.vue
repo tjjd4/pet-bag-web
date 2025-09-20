@@ -1,179 +1,98 @@
 <script setup lang="ts">
-import { reactive, watch, ref } from "vue";
-import { type Q2SelectionType, type FormDataQ2 } from "../types/types";
+import { reactive } from "vue";
+
+import { type FormDataQ2 } from "../types/types";
 import { phase2Questions } from "../data/questions";
 
 const props = defineProps<{
+    goBack?: () => void;
     initialData?: FormDataQ2 | null;
 }>();
 
 const emits = defineEmits<{
-    (e: "update-form", data: FormDataQ2): void;
+    (e: "update-form", formData: FormDataQ2): void;
 }>();
 
-// Section options and current state
-const sectionOptions = [
-  { label: "皮膚問題", value: "skin" as Q2SelectionType },
-  { label: "關節問題", value: "joint" as Q2SelectionType },
-  { label: "消化問題", value: "digestion" as Q2SelectionType },
-];
-
-const currentSection = ref<Q2SelectionType | null>("skin");
-
-// Initialize form data
-const formData = reactive<FormDataQ2>({
-    skin1: props.initialData?.skin1 || null,
-    skin2: props.initialData?.skin2 || null,
-    skin3: props.initialData?.skin3 || null,
-    skin4: props.initialData?.skin4 || null,
-    skin5: props.initialData?.skin5 || null,
-    joint1: props.initialData?.joint1 || null,
-    joint2: props.initialData?.joint2 || null,
-    joint3: props.initialData?.joint3 || null,
-    joint4: props.initialData?.joint4 || null,
-    joint5: props.initialData?.joint5 || null,
-    digestion1: props.initialData?.digestion1 || null,
-    digestion2: props.initialData?.digestion2 || null,
-    digestion3: props.initialData?.digestion3 || null,
-    digestion4: props.initialData?.digestion4 || null,
-    digestion5: props.initialData?.digestion5 || null,
+const form = reactive<FormDataQ2>({
+    healthSkin: props.initialData?.healthSkin || null,
+    healthJoint: props.initialData?.healthJoint || null,
+    healthDigestion: props.initialData?.healthDigestion || null,
+    healthEyes: props.initialData?.healthEyes || null,
+    healthOral: props.initialData?.healthOral || null,
 });
 
+const questions = phase2Questions;
 
-
-// Watch for changes in initialData prop
-watch(() => props.initialData, (newData) => {
-    if (newData) {
-        Object.assign(formData, newData);
-    }
-}, { immediate: true });
-
-// Watch form data and emit updates
-watch(formData, (newFormData) => {
-    emits("update-form", { ...newFormData });
-}, { deep: true });
-
-// Toggle section functionality
-function selectSection(section: Q2SelectionType) {
-    if (currentSection.value === section) {
-        currentSection.value = null;
-    } else {
-        currentSection.value = section;
-    }
-}
-
-// Helper function to get field name based on section and question id
-const getFieldName = (section: Q2SelectionType, questionId: number): keyof FormDataQ2 => {
-    return `${section}${questionId}` as keyof FormDataQ2;
+// Map health issue values to form fields
+const healthIssueToFormField: Record<string, keyof FormDataQ2> = {
+    'skin': 'healthSkin',
+    'joint': 'healthJoint',
+    'digestion': 'healthDigestion',
+    'eyes': 'healthEyes',
+    'oral': 'healthOral'
 };
 
-// Handle answer changes
-const handleAnswerChange = (section: Q2SelectionType, questionId: number, value: string) => {
-    const fieldName = getFieldName(section, questionId);
-    formData[fieldName] = value;
+// Handle health issue checkbox changes
+const handleHealthIssueChange = (value: string, checked: boolean) => {
+    const fieldName = healthIssueToFormField[value];
+    form[fieldName] = checked;
 };
 
-// Check if section has answers
-const sectionHasAnswers = (section: Q2SelectionType): boolean => {
-    const sectionKeys = Object.keys(formData).filter(key => key.startsWith(section)) as Array<keyof FormDataQ2>;
-    return sectionKeys.some(key => formData[key] !== null);
-};
-
-// Check if section is complete (all required questions answered)
-const sectionIsComplete = (section: Q2SelectionType): boolean => {
-    const questions = phase2Questions[section];
-    const requiredQuestions = questions.filter(q => q.required);
-    
-    return requiredQuestions.every(question => {
-        const fieldName = getFieldName(section, question.id);
-        return formData[fieldName] !== null;
-    });
+const handleSubmit = () => {
+    console.log(`[QuizStep2]`, form);
+    emits("update-form", form);
 };
 </script>
 
 <template>
-    <div>
-        <!-- Section navigation -->
-        <div class="flex flex-col gap-2 mb-8">
-            <div v-for="section in sectionOptions" :key="section.value">
-                <button
-                    @click="selectSection(section.value)"
-                    :class="[
-                        'px-2 py-1 border-l-4 text-left w-full flex items-center justify-between',
-                        currentSection === section.value
-                            ? 'border-purple-600 text-purple-600'
-                            : 'border-transparent hover:border-purple-300'
-                    ]"
-                >
-                    <span>{{ section.label }}</span>
-                    <span 
-                        v-if="sectionIsComplete(section.value)"
-                        class="text-green-500 text-sm"
+    <div class="min-h-screen bg-white px-4 py-6 flex flex-col">
+        <!-- 標題 -->
+        <div class="text-center mb-8">
+            <h1 class="text-xl font-bold text-gray-800 mb-2">健康問題主訴</h1>
+            <p class="text-sm text-gray-600">請選擇您關心的健康問題（可複選）</p>
+        </div>
+
+        <div v-for="question in questions" :key="question.id" class="mb-8">
+            <!-- Checkbox for health issues -->
+            <div v-if="question.type === 'checkbox'" class="max-w-md mx-auto">
+                <div class="space-y-3">
+                    <label
+                        v-for="option in question.options"
+                        :key="option.value"
+                        class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-200"
                     >
-                        ✓
-                    </span>
-                    <span 
-                        v-else-if="sectionHasAnswers(section.value)"
-                        class="text-yellow-500 text-sm"
-                    >
-                        ⚠
-                    </span>
-                </button>
-                
-                <!-- Section questions -->
-                <transition name="fade-slide">
-                    <div
-                        v-if="currentSection === section.value"
-                        class="pl-4 mt-2 space-y-6"
-                    >
-                        <div
-                            v-for="question in phase2Questions[section.value]"
-                            :key="question.id"
-                            class="mb-6"
-                        >
-                            <p class="mb-4 font-semibold text-base text-gray-800">
-                                {{ question.id }}. {{ question.text }}
-                                <span v-if="question.required" class="text-red-500 text-sm ml-1">*</span>
-                            </p>
-                            <div class="flex flex-col gap-3">
-                                <label
-                                    v-for="option in question.options"
-                                    :key="option.value"
-                                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                                >
-                                    <input
-                                        type="radio"
-                                        :name="'q' + section.value + '_' + question.id"
-                                        :value="option.value"
-                                        :checked="formData[getFieldName(section.value, question.id)] === option.value"
-                                        @change="handleAnswerChange(section.value, question.id, option.value)"
-                                        class="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                                    />
-                                    <span class="text-gray-700">{{ option.text }}</span>
-                                </label>
-                            </div>
+                        <input
+                            type="checkbox"
+                            :value="option.value"
+                            :checked="form[healthIssueToFormField[option.value]] === true"
+                            @change="handleHealthIssueChange(option.value, ($event.target as HTMLInputElement).checked)"
+                            class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 mt-0.5"
+                        />
+                        <div class="text-left">
+                            <div class="text-gray-800 font-medium">{{ option.text }}</div>
+                            <div v-if="option.description" class="text-xs text-gray-500">{{ option.description }}</div>
                         </div>
-                    </div>
-                </transition>
+                    </label>
+                </div>
             </div>
+        </div>
+
+        <!-- 按鈕區域 -->
+        <div class="flex justify-between items-center">
+            <button
+                v-if="props.goBack"
+                @click="props.goBack"
+                class="px-6 py-2 bg-gray-500 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors"
+            >
+                返回
+            </button>
+            <div v-else></div>
+            <button
+                @click="handleSubmit"
+                class="px-8 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-colors"
+            >
+                下一步
+            </button>
         </div>
     </div>
 </template>
-
-<style scoped>
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.5s ease;
-}
-.fade-slide-enter-from,
-.fade-slide-leave-to {
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-}
-.fade-slide-enter-to,
-.fade-slide-leave-from {
-  opacity: 1;
-  max-height: 1000px;
-}
-</style>

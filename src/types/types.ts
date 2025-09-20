@@ -11,10 +11,11 @@ export interface IQuestion<T> {
     id: number;
     text: string;
     model: keyof T;
-    type: 'radio' | 'select' | 'text';
+    type: 'radio' | 'select' | 'text' | 'checkbox';
     options?: Array<{
         text: string;
         value: string;
+        description?: string;
     }>;
     placeholder?: string;
     required?: boolean;
@@ -31,6 +32,14 @@ export interface FormDataQ1 {
 }
 
 export interface FormDataQ2 {
+  healthSkin: boolean | null;      // 皮膚問題
+  healthJoint: boolean | null;     // 關節問題
+  healthDigestion: boolean | null; // 消化問題
+  healthEyes: boolean | null;      // 眼睛問題
+  healthOral: boolean | null;      // 口腔問題
+}
+
+export interface FormDataQ3 {
   // Skin Questions (skin1, skin2, skin3, skin4, skin5)
   skin1: string | null;    // 毛髮狀況
   skin2: string | null;    // 是否搔癢或舔咬身體？

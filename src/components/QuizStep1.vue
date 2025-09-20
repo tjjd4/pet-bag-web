@@ -7,12 +7,11 @@ import { type FormDataQ1 } from "../types/types";
 import { phase1Questions } from "../data/questions";
 
 const props = defineProps<{
-    nextStep: () => void;
     initialData?: FormDataQ1 | null;
 }>();
 
 const emits = defineEmits<{
-    (e: "updateForm", formData: FormDataQ1): void;
+    (e: "update-form", formData: FormDataQ1): void;
 }>();
 
 const form = reactive<FormDataQ1>({
@@ -60,8 +59,7 @@ const handleSubmit = () => {
     v$.value.$validate();
     if (!v$.value.$invalid) {
         console.log(`[QuizStep1]`, form);
-        emits("updateForm", form);
-        props.nextStep();
+        emits("update-form", form);
     } else {
         console.log(
             `[QuizStep1] Not all questions are answered.`,
@@ -84,11 +82,11 @@ const handleSubmit = () => {
                 </h2>
                 
                 <!-- Radio buttons -->
-                <div v-if="question.type === 'radio'" class="flex flex-wrap justify-center gap-3 max-w-xs mx-auto">
+                <div v-if="question.type === 'radio'" class="flex flex-wrap justify-between gap-3 max-w-lg mx-auto">
                     <label
                         v-for="option in question.options"
                         :key="option.value"
-                        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-200"
+                        class="flex-1 items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors border border-gray-200"
                     >
                         <input
                             type="radio"
@@ -141,9 +139,9 @@ const handleSubmit = () => {
         <div class="flex flex-row-reverse justify-between mt-6">
             <button
                 @click="handleSubmit"
-                class="px-6 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors"
+                class="px-8 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-colors"
             >
-                下一題
+                下一步
             </button>
         </div>
     </div>
